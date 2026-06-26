@@ -1,0 +1,1 @@
+"""Control Frigorifico backend package."""

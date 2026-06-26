@@ -1,0 +1,42 @@
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--blue-soft);
+  color: var(--blue-2);
+  font-weight: 850;
+  font-size: .8rem;
+}
+
+.status-pill.high,
+.status-pill.critical,
+.status-pill.open {
+  color: #fff;
+  background: var(--red);
+}
+
+.status-pill.medium {
+  color: #5c3900;
+  background: #ffe2aa;
+}
+
+.status-pill.inactive,
+.status-pill.discarded,
+.status-pill.exhausted {
+  color: #596273;
+  background: #e7ebf1;
+}
+
+.status-pill.active,
+.status-pill.resolved {
+  color: #0f5c3d;
+  background: #cbf4df;
+}
+
+.status-pill.quarantined,
+.status-pill.expired {
+  color: #5c3900;
+  background: #ffe2aa;
+}

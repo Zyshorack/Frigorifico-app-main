@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Control Frigorifico</title>
+  <link rel="icon" type="image/svg+xml" href="/static/assets/favicon.svg?v=8">
+  <link rel="stylesheet" href="/static/css/main.css?v=crud-actions-20260624-8">
+</head>
+<body>
+  <div id="auth-screen" class="auth-screen">
+    <section class="auth-shell">
+      <div class="auth-copy">
+        <span class="eyebrow">Control Frigorifico V05</span>
+        <h1>Frio, stock y alertas bajo control.</h1>
+        <p>Administra camaras, sensores, lotes, vencimientos y evidencia operativa desde un panel simple.</p>
+      </div>
+
+      <div class="auth-box" aria-live="polite">
+        <div class="auth-tabs">
+          <button class="auth-tab is-active" type="button" data-auth-tab="login">Ingresar</button>
+          <button class="auth-tab" type="button" data-auth-tab="register">Crear cuenta</button>
+        </div>
+
+        <form id="login-form" class="auth-form">
+          <h2>Iniciar sesion</h2>
+          <label>Usuario<input name="username" autocomplete="username" required></label>
+          <label>Contrasena<input name="password" type="password" autocomplete="current-password" required></label>
+          <button class="primary-btn" type="submit">Entrar</button>
+          <p class="demo-access">Demo: <strong>demo</strong> / <strong>demo123</strong></p>
+        </form>
+
+        <form id="register-form" class="auth-form hidden">
+          <h2>Crear usuario</h2>
+          <label>Usuario<input name="username" autocomplete="username" required minlength="3"></label>
+          <label>Contrasena<input name="password" type="password" autocomplete="new-password" required minlength="6"></label>
+          <label>Rol
+            <select name="role">
+              <option value="operator">Operador</option>
+              <option value="admin">Admin</option>
+              <option value="client">Cliente</option>
+            </select>
+          </label>
+          <button class="primary-btn" type="submit">Crear cuenta</button>
+        </form>
+
+        <p id="auth-message" class="form-message"></p>
+      </div>
+    </section>
+  </div>
+
+  <div id="app-screen" class="app-screen hidden">
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">CF</span>
+        <div class="brand-text">
+          <strong>Control Frigorifico</strong>
+          <small id="role-label">Sesion</small>
+        </div>
+      </div>
+
+      <nav class="nav-list" aria-label="Principal">
+        <button class="nav-item is-active" data-view="dashboard" type="button" aria-label="Panel"><img class="nav-icon" src="/static/assets/icons/dashboard.svg" alt="" aria-hidden="true"><span class="nav-label">Panel</span></button>
+        <button class="nav-item" data-view="cold" type="button" aria-label="Frio"><img class="nav-icon" src="/static/assets/icons/cold.svg" alt="" aria-hidden="true"><span class="nav-label">Frio</span></button>
+        <button class="nav-item" data-view="stock" type="button" aria-label="Stock"><img class="nav-icon" src="/static/assets/icons/stock.svg" alt="" aria-hidden="true"><span class="nav-label">Stock</span></button>
+        <button class="nav-item" data-view="alerts" type="button" aria-label="Alertas"><img class="nav-icon" src="/static/assets/icons/alerts.svg" alt="" aria-hidden="true"><span class="nav-label">Alertas</span></button>
+        <button class="nav-item" data-view="products" type="button" aria-label="Productos"><img class="nav-icon" src="/static/assets/icons/products.svg" alt="" aria-hidden="true"><span class="nav-label">Productos</span></button>
+        <button class="nav-item admin-only" data-view="users" type="button" aria-label="Usuarios"><img class="nav-icon" src="/static/assets/icons/users.svg" alt="" aria-hidden="true"><span class="nav-label">Usuarios</span></button>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <h1 id="page-title">Panel</h1>
+          <p id="page-subtitle">Resumen operativo del frigorifico.</p>
+        </div>
+        <div class="top-actions">
+          <button id="refresh-btn" class="icon-btn" type="button">Actualizar</button>
+          <div class="notification-wrap">
+            <button id="bell-btn" class="bell-btn" type="button" title="Notificaciones">
+              <img class="bell-shape" src="/static/assets/icons/alerts.svg" alt="" aria-hidden="true">
+              <span id="bell-count" class="bell-count hidden">0</span>
+            </button>
+            <div id="notification-popover" class="notification-popover hidden">
+              <div class="popover-head">
+                <strong>Notificaciones</strong>
+                <button id="go-alerts-btn" class="link-btn" type="button">Ver alertas</button>
+              </div>
+              <div id="notification-list" class="notification-list"></div>
+            </div>
+          </div>
+          <button id="logout-btn" class="ghost-btn" type="button">Salir</button>
+        </div>
+      </header>
+
+      <section id="view-dashboard" class="view is-active"></section>
+      <section id="view-cold" class="view"></section>
+      <section id="view-stock" class="view"></section>
+      <section id="view-alerts" class="view"></section>
+      <section id="view-products" class="view"></section>
+      <section id="view-users" class="view"></section>
+    </main>
+  </div>
+
+  <div id="modal-root" class="modal-root hidden" role="dialog" aria-modal="true">
+    <div class="modal-backdrop"></div>
+    <section class="modal-box">
+      <header class="modal-head">
+        <div>
+          <h2 id="modal-title"></h2>
+          <p id="modal-subtitle"></p>
+        </div>
+        <button id="modal-close" class="close-btn" type="button" aria-label="Cerrar">X</button>
+      </header>
+      <div id="modal-body"></div>
+    </section>
+  </div>
+
+  <!-- El orden importa: utilidades, estado, API, componentes, paginas y arranque. -->
+  <script src="/static/js/utils/dom.js?v=crud-actions-20260624-8"></script>
+  <script src="/static/js/utils/format.js?v=crud-actions-20260624-8"></script>
+  <script src="/static/js/state/state.js?v=crud-actions-20260624-8"></script>
+  <script src="/static/js/api/api.js?v=crud-actions-20260624-8"></script>
+  <script src="/static/js/components/modal.js?v=crud-actions-20260624-8"></script>
+  <script src="/static/js/components/actions.js?v=crud-actions-20260624-8"></script>
+  <script src="/static/js/components/notifications.js?v=crud-actions-20260624-8"></script>
+  <script src="/static/js/pages/dashboard.js?v=crud-actions-20260624-8"></script>
+  <script src="/static/js/pages/products.js?v=crud-actions-20260624-8"></script>
+  <script src="/static/js/pages/cold.js?v=crud-actions-20260624-8"></script>
+  <script src="/static/js/pages/stock.js?v=crud-actions-20260624-8"></script>
+  <script src="/static/js/pages/alerts.js?v=crud-actions-20260624-8"></script>
+  <script src="/static/js/pages/users.js?v=crud-actions-20260624-8"></script>
+  <script src="/static/js/components/navigation.js?v=crud-actions-20260624-8"></script>
+  <script src="/static/js/components/auth.js?v=crud-actions-20260624-8"></script>
+  <script src="/static/js/main.js?v=crud-actions-20260624-8"></script>
+</body>
+</html>

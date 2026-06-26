@@ -1,0 +1,2 @@
+# Frigorifico-app-main
+git

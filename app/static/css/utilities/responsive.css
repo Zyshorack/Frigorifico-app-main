@@ -1,0 +1,74 @@
+@media (max-width: 920px) {
+  .auth-shell,
+  .app-screen,
+  .grid.cols-2,
+  .grid.cols-3,
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    min-height: auto;
+    width: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    overflow: visible;
+  }
+
+  .sidebar:hover,
+  .sidebar:focus-within {
+    width: auto;
+    box-shadow: none;
+  }
+
+  .brand {
+    min-width: 0;
+  }
+
+  .brand-text,
+  .nav-label {
+    width: auto;
+    opacity: 1;
+  }
+
+  .nav-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .nav-item {
+    justify-content: flex-start;
+  }
+
+  .admin-user-form {
+    grid-template-columns: 1fr;
+  }
+
+  .topbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 560px) {
+  .auth-screen,
+  .main,
+  .modal-root {
+    padding: 14px;
+  }
+
+  .nav-list,
+  .split-toolbar,
+  .top-actions {
+    width: 100%;
+  }
+
+  .split-toolbar,
+  .top-actions {
+    flex-wrap: wrap;
+  }
+
+  .segmented-control {
+    width: 100%;
+    overflow-x: auto;
+  }
+}
