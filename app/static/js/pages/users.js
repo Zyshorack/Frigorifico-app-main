@@ -1,10 +1,17 @@
 CF.state.userFilter = CF.state.userFilter || "active";
 
 CF.renderUsers = function renderUsers() {
-  if (CF.state.user.role !== "admin") {
-    CF.$("#view-users").innerHTML = `<div class="empty">Este apartado solo lo ve un admin.</div>`;
-    return;
-  }
+
+    if (CF.state.user.role !== "admin") {
+
+        CF.$("#view-users").innerHTML = `
+            <div class="empty">
+                Este apartado solo está disponible para administradores.
+            </div>
+        `;
+
+        return;
+    }
 
   const filter = CF.state.userFilter || "active";
   const users = CF.filteredUsers(filter);
@@ -78,4 +85,156 @@ CF.openUserEditModal = function openUserEditModal(userId) {
   CF.openModal("Editar usuario", "Actualiza rol, estado o credenciales.", CF.userForm(user), () => {
     CF.bindJsonSubmit("#edit-user-form", "PATCH", `/users/${userId}`);
   });
+};
+
+CF.itemForm = function(item = null) {
+  return `
+    <form id="${item ? "edit-item-form" : "create-item-form"}" class="form-grid">
+
+      <label>
+        Nombre
+        <input
+          name="name"
+          required
+          value="${CF.escapeHtml(item?.name || "")}">
+      </label>
+
+      <label>
+        Descripción
+        <textarea
+          name="description">${CF.escapeHtml(item?.description || "")}</textarea>
+      </label>
+
+      <button class="primary-btn" type="submit">
+        ${item ? "Guardar cambios" : "Crear elemento"}
+      </button>
+
+    </form>
+  `;
+};
+
+CF.openItemCreateModal = function () {
+    CF.openModal(
+        "Crear elemento",
+        "Alta de un nuevo elemento.",
+        CF.itemForm(),
+        () => {
+            CF.bindJsonSubmit(
+                "#create-item-form",
+                "POST",
+                "/items"
+            );
+        }
+    );
+};
+
+CF.openItemEditModal = function(id) {
+
+    const item = CF.state.data.items.find(i => i.id === id);
+
+    if (!item) return;
+
+    CF.openModal(
+        "Editar elemento",
+        "",
+        CF.itemForm(item),
+        () => {
+            CF.bindJsonSubmit(
+                "#edit-item-form",
+                "PATCH",
+                `/items/${id}`
+            );
+        }
+    );
+};
+
+CF.renderItems = function renderItems() {
+
+    const isAdmin = CF.state.user.role === "admin";
+
+    const items = [...CF.state.data.items]
+        .filter(item => isAdmin || item.is_active)
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+    CF.$("#view-items").innerHTML = `
+        ${isAdmin ? `
+            <div class="toolbar">
+                <button
+                    class="secondary-btn"
+                    id="open-item-create">
+                    Crear elemento
+                </button>
+            </div>
+        ` : ""}
+
+        <article class="panel">
+
+            ${CF.table(
+
+                isAdmin
+                    ? ["Nombre","Descripción","Estado","Fecha","Acciones"]
+                    : ["Nombre","Descripción","Fecha"],
+
+                items.map(item =>
+
+                    isAdmin
+
+                    ? [
+
+                        CF.escapeHtml(item.name),
+
+                        CF.escapeHtml(item.description),
+
+                        CF.statusPill(
+                            item.is_active ? "active" : "inactive",
+                            CF.statusLabel(item.is_active)
+                        ),
+
+                        CF.fmtDate(item.created_at),
+
+                        CF.actionButtons(
+                            "item",
+                            item.id,
+                            item.is_active
+                        )
+
+                    ]
+
+                    : [
+
+                        CF.escapeHtml(item.name),
+
+                        CF.escapeHtml(item.description),
+
+                        CF.fmtDate(item.created_at)
+
+                    ]
+
+                )
+
+            )}
+
+        </article>
+    `;
+
+    if (!isAdmin) return;
+
+    CF.$("#open-item-create")
+        .addEventListener("click", CF.openItemCreateModal);
+
+    CF.$$("[data-edit-item]").forEach(button =>
+        button.addEventListener("click", () =>
+            CF.openItemEditModal(Number(button.dataset.editItem))
+        )
+    );
+
+    CF.$$("[data-delete-item]").forEach(button =>
+        button.addEventListener("click", () =>
+            CF.confirmDelete(
+                "El elemento quedará inactivo. ¿Continuar?",
+                `/items/${button.dataset.deleteItem}`
+            )
+        )
+    );
+
 };

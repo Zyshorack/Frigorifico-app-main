@@ -13,6 +13,30 @@ CF.api = async function api(path, options = {}) {
   return data;
 };
 
+CF.loadAll = async function(){
+
+    const users = await CF.api("/users");
+    const products = await CF.api("/products");
+    const items = await CF.api("/items");
+    const stock = await CF.api("/stock");
+    const alerts = await CF.api("/alerts");
+
+    CF.state.data = {
+
+        users,
+
+        products,
+
+        items,
+
+        stock,
+
+        alerts
+
+    };
+
+};
+
 CF.loadAll = async function loadAll() {
   // Refresca los datos compartidos por todas las pantallas antes de renderizar.
   const requests = [

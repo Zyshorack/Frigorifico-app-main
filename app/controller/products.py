@@ -64,14 +64,19 @@ def delete_product(product_id: int, db: Session = Depends(get_db)) -> Response:
 def catalog(db: Session = Depends(get_db)) -> list[dict]:
     return product_service.catalog(db)
 
-@router.get("/products/search", response_model=ProductRead)
-def product_by_name_and_category(
-    product_name: str | None = None,
-    category_name: str | None = None,
-    db: Session = Depends(get_db),
-) -> Product:
-    return product_service.product_by_name_and_category(
+@router.get("/products/search")
+def search(
+    code: str | None = None,
+    category_id: int | None = None,
+    db: Session = Depends(get_db)
+):
+
+    products = product_service.search_products(
         db,
-        product_name,
-        category_name,
+        code,
+        category_id
     )
+
+    return {
+        "products": products
+    }

@@ -3,6 +3,7 @@ CF.renderProducts = function renderProducts() {
     <div class="toolbar">
       <button class="secondary-btn toolbar-action" type="button" id="open-category">Nueva categoria</button>
       <button class="secondary-btn toolbar-action" type="button" id="open-product">Nuevo producto</button>
+      <button class="secondary-btn toolbar-action" type="button" id="open-search">Buscar</button>
     </div>
     <div class="grid cols-2">
       <article class="panel">
@@ -28,6 +29,7 @@ CF.renderProducts = function renderProducts() {
   `;
   CF.$("#open-category").addEventListener("click", () => CF.openCategoryModal());
   CF.$("#open-product").addEventListener("click", () => CF.openProductModal());
+  CF.$("#open-search").addEventListener("click", () => CF.openSearchModal());
   CF.$$('[data-edit-product]').forEach((button) => button.addEventListener("click", () => CF.openProductModal(Number(button.dataset.editProduct))));
   CF.$$('[data-delete-product]').forEach((button) => button.addEventListener("click", () => {
     CF.confirmDelete("El producto quedara inactivo y no aparecera en el catalogo disponible. Continuar?", `/products/${button.dataset.deleteProduct}`);
@@ -84,4 +86,110 @@ CF.openProductModal = function openProductModal(productId = null) {
   CF.openModal(product ? "Editar producto" : "Nuevo producto", "Producto disponible para lotes.", CF.productForm(product), () => {
     CF.bindJsonSubmit("#product-form", product ? "PATCH" : "POST", product ? `/products/${product.id}` : "/products");
   });
+};
+
+CF.searchForm = function searchForm() {
+  return `
+    <form id="search-form" class="form-grid">
+      <label>
+        Código
+        <input name="code" placeholder="Ej: BOV-ASADO">
+      </label>
+
+      <label>
+        Categoría
+        <select name="category_id">
+          <option value="">Todas</option>
+          ${CF.activeSelectOptions(CF.state.data.categories)}
+        </select>
+      </label>
+
+      <button class="primary-btn" type="submit">
+        Buscar
+      </button>
+    </form>
+  `;
+};
+
+CF.openSearchModal = function openSearchModal() {
+  CF.openModal(
+    "Buscar productos",
+    "Buscar por código y categoría.",
+    CF.searchForm(),
+    () => {
+      document.querySelector("#search-form")
+        .addEventListener("submit", (e) => {
+          e.preventDefault();
+
+          const form = new FormData(e.target);
+
+          const code = form.get("code");
+
+          const category = form.get("category_id");
+
+          CF.searchProducts(code, category);
+        });
+    }
+  );
+};
+
+CF.searchProducts = function(code, categoryId) {
+
+  const params = new URLSearchParams();
+
+
+  if (code) {
+    params.append("code", code);
+  }
+
+
+  if (categoryId) {
+    params.append("category_id", categoryId);
+  }
+
+
+  fetch(`/products/search?${params.toString()}`)
+    .then(response => {
+
+      if (!response.ok) {
+        throw new Error("Error buscando productos");
+      }
+
+      return response.json();
+
+    })
+    .then(data => {
+
+
+      console.log("Respuesta búsqueda:", data);
+
+
+      // Si tu API devuelve {products: []}
+      if (data.products) {
+        CF.state.data.products = data.products;
+      }
+
+      // Si devuelve directamente []
+      else {
+        CF.state.data.products = data;
+      }
+
+
+      // vuelve a dibujar la tabla
+      CF.renderProducts();
+
+
+      // cerrar modal de búsqueda
+      if (CF.closeModal) {
+        CF.closeModal();
+      }
+
+
+    })
+    .catch(error => {
+
+      console.error(error);
+
+    });
+
 };

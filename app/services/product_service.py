@@ -194,3 +194,27 @@ def product_by_name_and_category(
         )
 
     return product
+
+def search_products(
+    db: Session,
+    code: str | None = None,
+    category_id: int | None = None,
+) -> list[Product]:
+
+    query = select(Product)
+
+    if code:
+        query = query.where(
+            Product.code.ilike(f"%{code}%")
+        )
+
+    if category_id:
+        query = query.where(
+            Product.category_id == category_id
+        )
+
+    query = query.where(
+        Product.is_active == True
+    )
+
+    return list(db.scalars(query).all())
