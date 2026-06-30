@@ -13,37 +13,171 @@ CF.renderUsers = function renderUsers() {
         return;
     }
 
-  const filter = CF.state.userFilter || "active";
-  const users = CF.filteredUsers(filter);
-  CF.$("#view-users").innerHTML = `
-    <div class="toolbar split-toolbar">
-      <div class="segmented-control" role="group" aria-label="Filtrar usuarios">
-        <button class="segment-btn ${filter === "active" ? "is-active" : ""}" type="button" data-user-filter="active">Activos</button>
-        <button class="segment-btn ${filter === "inactive" ? "is-active" : ""}" type="button" data-user-filter="inactive">Inactivos</button>
-        <button class="segment-btn ${filter === "history" ? "is-active" : ""}" type="button" data-user-filter="history">Historial</button>
-      </div>
-      <button class="secondary-btn toolbar-action" type="button" id="open-user-create">Crear usuario</button>
-    </div>
-    <article class="panel">
-      ${CF.table(["Usuario", "Rol", "Estado", "Alta", "Acciones"], users.map((user) => [
-        CF.escapeHtml(user.username),
-        CF.escapeHtml(user.role),
-        CF.statusPill(user.is_active ? "active" : "inactive", CF.statusLabel(user.is_active)),
-        CF.fmtDate(user.created_at),
-        CF.actionButtons("user", user.id, user.is_active),
-      ]))}
-    </article>
-  `;
+    const filter = CF.state.userFilter || "active";
+    const users = CF.filteredUsers(filter);
 
-  CF.$$('[data-user-filter]').forEach((button) => button.addEventListener("click", () => {
-    CF.state.userFilter = button.dataset.userFilter;
-    CF.renderUsers();
-  }));
-  CF.$("#open-user-create").addEventListener("click", CF.openUserCreateModal);
-  CF.$$('[data-edit-user]').forEach((button) => button.addEventListener("click", () => CF.openUserEditModal(Number(button.dataset.editUser))));
-  CF.$$('[data-delete-user]').forEach((button) => button.addEventListener("click", () => {
-    CF.confirmDelete("El usuario quedara inactivo. Continuar?", `/users/${button.dataset.deleteUser}`);
-  }));
+    CF.$("#view-users").innerHTML = `
+        <div class="toolbar split-toolbar">
+
+            <div class="segmented-control" role="group" aria-label="Filtrar usuarios">
+
+                <button 
+                    class="segment-btn ${filter === "active" ? "is-active" : ""}" 
+                    type="button" 
+                    data-user-filter="active">
+                    Activos
+                </button>
+
+                <button 
+                    class="segment-btn ${filter === "inactive" ? "is-active" : ""}" 
+                    type="button" 
+                    data-user-filter="inactive">
+                    Inactivos
+                </button>
+
+                <button 
+                    class="segment-btn ${filter === "history" ? "is-active" : ""}" 
+                    type="button" 
+                    data-user-filter="history">
+                    Historial
+                </button>
+
+            </div>
+
+            <button 
+                class="secondary-btn toolbar-action" 
+                type="button" 
+                id="open-user-create">
+                Crear usuario
+            </button>
+
+        </div>
+
+
+        <article class="panel">
+
+            ${CF.table(
+                ["Usuario", "Rol", "Estado", "Alta", "Acciones"],
+
+                users.map((user) => [
+
+                    CF.escapeHtml(user.username),
+
+                    CF.escapeHtml(user.role),
+
+                    CF.statusPill(
+                        user.is_active ? "active" : "inactive",
+                        CF.statusLabel(user.is_active)
+                    ),
+
+                    CF.fmtDate(user.created_at),
+
+                    CF.userActionButtons(user)
+
+                ])
+            )}
+
+        </article>
+    `;
+
+
+    // filtros
+
+    CF.$$('[data-user-filter]').forEach((button) => {
+
+        button.addEventListener("click", () => {
+
+            CF.state.userFilter = button.dataset.userFilter;
+
+            CF.renderUsers();
+
+        });
+
+    });
+
+
+    // crear
+
+    CF.$("#open-user-create")
+        .addEventListener(
+            "click",
+            CF.openUserCreateModal
+        );
+
+
+    // editar
+
+    CF.$$('[data-edit-user]').forEach((button) => {
+
+        button.addEventListener("click", () => {
+
+            CF.openUserEditModal(
+                Number(button.dataset.editUser)
+            );
+
+        });
+
+    });
+
+
+    // desactivar
+
+    CF.$$('[data-disable-user]').forEach((button) => {
+
+        button.addEventListener("click", () => {
+
+            CF.confirmDelete(
+                "El usuario quedara inactivo. Continuar?",
+                `/users/${button.dataset.disableUser}`
+            );
+
+        });
+
+    });
+
+
+    // reactivar
+
+    CF.$$('[data-reactivate-user]').forEach((button) => {
+
+        button.addEventListener("click", async () => {
+
+            await CF.api(
+                `/users/${button.dataset.reactivateUser}`,
+                {
+                    method: "PATCH",
+                    body: JSON.stringify({
+                        is_active: true
+                    })
+                }
+            );
+
+            await CF.loadAll();
+
+            CF.state.userFilter = "active";
+
+            CF.renderUsers();
+
+        });
+
+    });
+
+
+    // eliminar permanente
+
+    CF.$$('[data-delete-user-permanent]').forEach((button) => {
+
+        button.addEventListener("click", () => {
+
+            CF.confirmDelete(
+                "El usuario sera eliminado definitivamente de la base de datos. Continuar?",
+                `/users/${button.dataset.deleteUserPermanent}/permanent`
+            );
+
+        });
+
+    });
+
 };
 
 CF.filteredUsers = function filteredUsers(filter) {
@@ -237,4 +371,47 @@ CF.renderItems = function renderItems() {
         )
     );
 
+};
+
+CF.userActionButtons = function userActionButtons(user) {
+  return `
+    <div class="table-actions">
+
+      <button 
+        class="secondary-btn compact-btn" 
+        data-edit-user="${user.id}" 
+        type="button">
+        Editar
+      </button>
+
+      ${
+        user.is_active
+        ? `
+          <button 
+            class="secondary-btn compact-btn" 
+            data-disable-user="${user.id}" 
+            type="button">
+            Desactivar
+          </button>
+        `
+        :
+        `
+          <button 
+            class="secondary-btn compact-btn" 
+            data-reactivate-user="${user.id}" 
+            type="button">
+            Activar
+          </button>
+        `
+      }
+
+      <button 
+        class="danger-btn compact-btn" 
+        data-delete-user-permanent="${user.id}" 
+        type="button">
+        Eliminar
+      </button>
+
+    </div>
+  `;
 };

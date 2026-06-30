@@ -106,6 +106,20 @@ def delete_user(db: Session, user_id: int) -> None:
     db.flush()
 
 
+def delete_user_permanently(db: Session, user_id: int) -> None:
+    user = get_by_id(db, User, user_id)
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="El usuario indicado no existe.",
+        )
+
+    _ensure_not_last_admin(db, user)
+
+    db.delete(user)
+    db.commit()
+
+
 def login(db: Session, payload: UserLogin) -> User:
     user = get_user_by_username(db, payload.username)
     if user is None or not user.is_active or not verify_password(payload.password, user.password_hash):

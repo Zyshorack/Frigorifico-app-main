@@ -50,15 +50,17 @@ CF.$("#login-form").addEventListener("submit", (event) => {
 CF.$("#register-form").addEventListener("submit", (event) => {
   event.preventDefault();
 
+  const form = event.currentTarget;
+
   handleAuth(async () => {
-    const payload = CF.formJson(event.currentTarget);
+    const payload = CF.formJson(form);
 
     await CF.api("/users", {
       method: "POST",
       body: JSON.stringify(payload)
     });
 
-    event.currentTarget.reset();
+    form.reset();
 
     CF.setAuthTab("login");
     CF.setAuthMessage("Usuario creado. Ahora inicia sesion.", true);

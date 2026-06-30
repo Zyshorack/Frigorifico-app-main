@@ -1,9 +1,10 @@
-﻿from fastapi import APIRouter, Depends, Response, status
+﻿from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
 from app.dto.users import UserCreate, UserLogin, UserRead, UserUpdate
 from app.models import User
+from app.repositories.domain_repository import get_by_id
 from app.services import user_service
 
 router = APIRouter(prefix="/users", tags=["Users"])
@@ -32,4 +33,15 @@ def update_user(user_id: int, payload: UserUpdate, db: Session = Depends(get_db)
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_user(user_id: int, db: Session = Depends(get_db)) -> Response:
     user_service.delete_user(db, user_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.delete("/{user_id}/permanent", status_code=status.HTTP_204_NO_CONTENT)
+def delete_user_permanent(
+    user_id: int,
+    db: Session = Depends(get_db)
+) -> Response:
+
+    user_service.delete_user_permanently(db, user_id)
+
     return Response(status_code=status.HTTP_204_NO_CONTENT)
